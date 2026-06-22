@@ -20,10 +20,12 @@ import { doctorsApi } from '@/lib/api/doctors';
 import { visitsApi } from '@/lib/api/visits';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '@/stores/authStore';
+import { useConfirm } from '@/hooks/useConfirm';
 
 type TabType = 'tests' | 'requests';
 
 export default function RadiologyPage() {
+  const { confirm, ConfirmComponent } = useConfirm();
   const { user } = useAuthStore();
   const isDoctor = user?.role === UserRole.DOCTOR;
   const isAdmin = user?.role === UserRole.ADMIN;
@@ -155,7 +157,8 @@ export default function RadiologyPage() {
   };
 
   const handleDeleteTest = async (id: number) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الفحص؟')) return;
+    const confirmed = await confirm({ title: 'تأكيد الحذف', message: 'هل أنت متأكد من حذف هذا الفحص؟', confirmText: 'حذف', type: 'danger' });
+    if (!confirmed) return;
 
     try {
       await radiologyTestsApi.delete(id);
@@ -549,7 +552,7 @@ export default function RadiologyPage() {
                   required
                   value={testFormData.name}
                   onChange={(e) => setTestFormData({ ...testFormData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أدخل اسم الفحص"
                 />
               </div>
@@ -560,7 +563,7 @@ export default function RadiologyPage() {
                   type="text"
                   value={testFormData.category}
                   onChange={(e) => setTestFormData({ ...testFormData, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="مثال: أشعة مقطعية، رنين مغناطيسي..."
                 />
               </div>
@@ -574,7 +577,7 @@ export default function RadiologyPage() {
                   step="0.01"
                   value={testFormData.price}
                   onChange={(e) => setTestFormData({ ...testFormData, price: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                 />
               </div>
 
@@ -615,7 +618,7 @@ export default function RadiologyPage() {
                   required
                   value={requestFormData.visitId || ''}
                   onChange={(e) => setRequestFormData({ ...requestFormData, visitId: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                 >
                   <option value="">اختر الزيارة</option>
                   {visits && visits.map((visit) => {
@@ -637,7 +640,7 @@ export default function RadiologyPage() {
                   <select
                     value={0}
                     onChange={(e) => handleAddTest(parseInt(e.target.value))}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   >
                     <option value={0}>اختر فحص لإضافته</option>
                     {tests.map((test) => (
@@ -679,7 +682,7 @@ export default function RadiologyPage() {
                   value={requestFormData.notes}
                   onChange={(e) => setRequestFormData({ ...requestFormData, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أي ملاحظات إضافية..."
                 />
               </div>
@@ -842,7 +845,7 @@ export default function RadiologyPage() {
                   type="url"
                   value={resultFormData.imageUrl}
                   onChange={(e) => setResultFormData({ ...resultFormData, imageUrl: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="https://..."
                 />
               </div>
@@ -854,7 +857,7 @@ export default function RadiologyPage() {
                   value={resultFormData.report}
                   onChange={(e) => setResultFormData({ ...resultFormData, report: e.target.value })}
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أدخل تقرير الفحص..."
                 />
               </div>
@@ -865,7 +868,7 @@ export default function RadiologyPage() {
                   value={resultFormData.notes}
                   onChange={(e) => setResultFormData({ ...resultFormData, notes: e.target.value })}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="ملاحظات إضافية..."
                 />
               </div>
@@ -891,6 +894,7 @@ export default function RadiologyPage() {
           </div>
         </div>
       )}
+      <ConfirmComponent />
     </div>
   );
 }

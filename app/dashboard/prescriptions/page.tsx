@@ -16,6 +16,7 @@ import { visitsApi } from '@/lib/api/visits';
 import { medicinesApi } from '@/lib/api/medicines';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '@/stores/authStore';
+import { useConfirm } from '@/hooks/useConfirm';
 
 interface PrescriptionItemFormData {
   medicineId: number;
@@ -25,6 +26,7 @@ interface PrescriptionItemFormData {
 }
 
 export default function PrescriptionsPage() {
+  const { confirm, ConfirmComponent } = useConfirm();
   const { user } = useAuthStore();
   const isDoctor = user?.role === UserRole.DOCTOR;
 
@@ -85,7 +87,8 @@ export default function PrescriptionsPage() {
 
 
   const handleDelete = async (id: number) => {
-    if (!confirm('هل أنت متأكد من حذف هذه الوصفة؟')) return;
+    const confirmed = await confirm({ title: 'تأكيد الحذف', message: 'هل أنت متأكد من حذف هذه الوصفة؟', confirmText: 'حذف', type: 'danger' });
+    if (!confirmed) return;
 
     try {
       await prescriptionsApi.delete(id);
@@ -459,7 +462,7 @@ export default function PrescriptionsPage() {
                       });
                     }
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                 >
                   <option value="">اختر الزيارة</option>
                   {visits.map((visit) => {
@@ -498,7 +501,7 @@ export default function PrescriptionsPage() {
                     <select
                       value={currentItem.medicineId || ''}
                       onChange={(e) => setCurrentItem({ ...currentItem, medicineId: parseInt(e.target.value) })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                     >
                       <option value="">اختر الدواء</option>
                       {medicines.map((medicine) => (
@@ -515,7 +518,7 @@ export default function PrescriptionsPage() {
                       type="text"
                       value={currentItem.dosage}
                       onChange={(e) => setCurrentItem({ ...currentItem, dosage: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                       placeholder="مثال: حبة واحدة"
                     />
                   </div>
@@ -526,7 +529,7 @@ export default function PrescriptionsPage() {
                       type="text"
                       value={currentItem.frequency}
                       onChange={(e) => setCurrentItem({ ...currentItem, frequency: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                       placeholder="مثال: 3 مرات يومياً"
                     />
                   </div>
@@ -537,7 +540,7 @@ export default function PrescriptionsPage() {
                       type="text"
                       value={currentItem.duration}
                       onChange={(e) => setCurrentItem({ ...currentItem, duration: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                       placeholder="مثال: 7 أيام"
                     />
                   </div>
@@ -593,7 +596,7 @@ export default function PrescriptionsPage() {
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أي ملاحظات إضافية..."
                 />
               </div>
@@ -619,6 +622,7 @@ export default function PrescriptionsPage() {
           </div>
         </div>
       )}
+      <ConfirmComponent />
     </div>
   );
 }

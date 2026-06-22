@@ -153,9 +153,9 @@ export interface QueryVisitsDto {
 // ========== Appointment Types ==========
 export enum AppointmentStatus {
   SCHEDULED = 'SCHEDULED',
-  CONFIRMED = 'CONFIRMED',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
+  NO_SHOW = 'NO_SHOW',
 }
 
 export interface Appointment {
@@ -309,7 +309,8 @@ export interface LabRequestItem {
   testId: number;
   resultValue?: string;
   unit?: string;
-  referenceRange?: string;
+  referenceRangeMin?: number;
+  referenceRangeMax?: number;
   resultAt?: string;
   notes?: string;
   test?: LabTest;
@@ -350,7 +351,8 @@ export interface UpdateLabRequestDto {
 export interface UpdateLabResultDto {
   resultValue?: string;
   unit?: string;
-  referenceRange?: string;
+  referenceRangeMin?: number;
+  referenceRangeMax?: number;
   resultAt?: string;
   notes?: string;
 }
@@ -482,6 +484,7 @@ export interface Invoice {
   totalAmount: string; // Decimal
   discount: string; // Decimal
   finalAmount: string; // Decimal
+  departmentTotal?: number; // موجود فقط للأدوار المقيدة (PHARMACIST, LAB_TECH, RADIOLOGY_TECH)
   createdAt: string;
   patient?: Patient;
   items: InvoiceItem[];
@@ -503,4 +506,138 @@ export interface AddInvoiceItemDto {
 export interface QueryInvoicesDto {
   status?: InvoiceStatus;
   patientId?: number;
+  itemType?: InvoiceItemType;
+}
+
+export interface InvoiceStats {
+  department: string;
+  totalRevenue: string;
+  totalItems: number;
+}
+
+// ========== Room Types ==========
+export enum RoomType {
+  GENERAL = 'GENERAL',
+  ICU = 'ICU',
+  SURGERY = 'SURGERY',
+  CONSULTATION = 'CONSULTATION',
+  PRIVATE = 'PRIVATE',
+}
+
+export enum RoomStatus {
+  AVAILABLE = 'AVAILABLE',
+  OCCUPIED = 'OCCUPIED',
+  UNDER_MAINTENANCE = 'UNDER_MAINTENANCE',
+}
+
+export enum BedStatus {
+  AVAILABLE = 'AVAILABLE',
+  OCCUPIED = 'OCCUPIED',
+}
+
+export interface Bed {
+  id: number;
+  roomId: number;
+  bedNumber: string;
+  status: BedStatus;
+}
+
+export interface Room {
+  id: number;
+  roomNumber: string;
+  type: RoomType;
+  floor: number;
+  nightlyRate: string;
+  description?: string;
+  status: RoomStatus;
+  beds?: Bed[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateRoomDto {
+  roomNumber: string;
+  type: RoomType;
+  floor: number;
+  nightlyRate: number;
+  description?: string;
+}
+
+export interface UpdateRoomDto {
+  type?: RoomType;
+  floor?: number;
+  nightlyRate?: number;
+  description?: string;
+  status?: RoomStatus;
+}
+
+export interface AddBedDto {
+  bedNumber: string;
+}
+
+export interface QueryRoomsDto {
+  type?: RoomType;
+  status?: RoomStatus;
+  floor?: number;
+}
+
+// ========== Room Reservation Types ==========
+export enum ReservationType {
+  PATIENT_STAY = 'PATIENT_STAY',
+  SURGERY = 'SURGERY',
+  CONSULTATION = 'CONSULTATION',
+}
+
+export enum ReservationStatus {
+  RESERVED = 'RESERVED',
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface RoomReservation {
+  id: number;
+  roomId: number;
+  bedId?: number;
+  patientId?: number;
+  doctorId?: number;
+  visitId?: number;
+  appointmentId?: number;
+  reservationType: ReservationType;
+  status: ReservationStatus;
+  startDate: string;
+  endDate?: string;
+  notes?: string;
+  room?: Room;
+  bed?: Bed;
+  patient?: Patient;
+  doctor?: Doctor;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateRoomReservationDto {
+  roomId: number;
+  bedId?: number;
+  patientId?: number;
+  doctorId?: number;
+  visitId?: number;
+  appointmentId?: number;
+  reservationType: ReservationType;
+  startDate: string;
+  endDate?: string;
+  notes?: string;
+}
+
+export interface UpdateRoomReservationDto {
+  endDate?: string;
+  notes?: string;
+}
+
+export interface QueryRoomReservationsDto {
+  roomId?: number;
+  patientId?: number;
+  doctorId?: number;
+  status?: ReservationStatus;
+  reservationType?: ReservationType;
 }

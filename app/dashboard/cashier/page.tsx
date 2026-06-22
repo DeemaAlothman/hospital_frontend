@@ -13,8 +13,10 @@ import {
 } from '@/types';
 import { toast } from 'react-toastify';
 import { Receipt, Search, Plus, X, CheckCircle, Clock, DollarSign } from 'lucide-react';
+import { useConfirm } from '@/hooks/useConfirm';
 
 export default function CashierPage() {
+  const { confirm, ConfirmComponent } = useConfirm();
   const { user } = useAuthStore();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [radiologyTests, setRadiologyTests] = useState<RadiologyTest[]>([]);
@@ -108,7 +110,8 @@ export default function CashierPage() {
   };
 
   const handleCancelInvoice = async (invoiceId: number) => {
-    if (!confirm('هل أنت متأكد من إلغاء هذه الفاتورة؟')) return;
+    const confirmed = await confirm({ title: 'تأكيد الإلغاء', message: 'هل أنت متأكد من إلغاء هذه الفاتورة؟', confirmText: 'إلغاء الفاتورة', type: 'warning' });
+    if (!confirmed) return;
 
     try {
       await invoicesApi.cancel(invoiceId);
@@ -419,7 +422,7 @@ export default function CashierPage() {
 
       {/* Add Item Modal */}
       {showAddItemModal && selectedInvoice && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-xl font-semibold text-gray-900">إضافة عنصر للفاتورة</h3>
@@ -549,6 +552,7 @@ export default function CashierPage() {
           </div>
         </div>
       )}
+      <ConfirmComponent />
     </div>
   );
 }

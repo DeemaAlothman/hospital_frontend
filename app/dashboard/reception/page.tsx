@@ -160,12 +160,17 @@ export default function ReceptionPage() {
       return;
     }
 
+    const submitData = {
+      ...appointmentFormData,
+      date: appointmentFormData.date ? new Date(appointmentFormData.date).toISOString() : appointmentFormData.date,
+    };
+
     try {
       if (editingAppointment) {
-        await appointmentsApi.update(editingAppointment.id, appointmentFormData);
+        await appointmentsApi.update(editingAppointment.id, submitData);
         toast.success('تم تحديث الموعد بنجاح');
       } else {
-        await appointmentsApi.create(appointmentFormData);
+        await appointmentsApi.create(submitData);
         toast.success('تم حجز الموعد بنجاح');
       }
       handleCloseAppointmentModal();
@@ -233,12 +238,12 @@ export default function ReceptionPage() {
     switch (status) {
       case AppointmentStatus.SCHEDULED:
         return 'bg-blue-100 text-blue-800';
-      case AppointmentStatus.CONFIRMED:
-        return 'bg-green-100 text-green-800';
-      case AppointmentStatus.CANCELLED:
-        return 'bg-red-100 text-red-800';
       case AppointmentStatus.COMPLETED:
         return 'bg-gray-100 text-gray-800';
+      case AppointmentStatus.CANCELLED:
+        return 'bg-red-100 text-red-800';
+      case AppointmentStatus.NO_SHOW:
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -247,13 +252,13 @@ export default function ReceptionPage() {
   const getStatusLabel = (status: AppointmentStatus) => {
     switch (status) {
       case AppointmentStatus.SCHEDULED:
-        return 'مجدول';
-      case AppointmentStatus.CONFIRMED:
-        return 'مؤكد';
-      case AppointmentStatus.CANCELLED:
-        return 'ملغي';
+        return 'مجدول / مؤكد';
       case AppointmentStatus.COMPLETED:
         return 'مكتمل';
+      case AppointmentStatus.CANCELLED:
+        return 'ملغي';
+      case AppointmentStatus.NO_SHOW:
+        return 'لم يحضر';
       default:
         return status;
     }
@@ -350,14 +355,14 @@ export default function ReceptionPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {patients.map((patient) => (
                     <tr key={patient.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{patient.fullName}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{patient.gender === 'MALE' ? 'ذكر' : 'أنثى'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{patient.fullName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{patient.gender === 'MALE' ? 'ذكر' : 'أنثى'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {patient.birthDate ? new Date(patient.birthDate).toLocaleDateString('ar-SA') : '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{patient.phone || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{patient.bloodType || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{patient.phone || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{patient.bloodType || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex gap-2">
                           <button
                             onClick={() => setViewingPatient(patient)}
@@ -429,25 +434,25 @@ export default function ReceptionPage() {
                     const doctor = doctors.find(d => d.id === appointment.doctorId);
                     return (
                       <tr key={appointment.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {patient?.fullName || `مريض #${appointment.patientId}`}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {doctor?.user?.fullName || `طبيب #${appointment.doctorId}`}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           <div className="flex items-center gap-2">
                             <Clock size={14} className="text-gray-400" />
                             {new Date(appointment.date).toLocaleString('ar-SA')}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm">{appointment.reason || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{appointment.reason || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(appointment.status)}`}>
                             {getStatusLabel(appointment.status)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEditAppointment(appointment)}
@@ -480,7 +485,7 @@ export default function ReceptionPage() {
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-2xl font-bold text-gray-900">
                 {editingPatient ? 'تعديل بيانات المريض' : 'تسجيل مريض جديد'}
               </h2>
               <button onClick={handleClosePatientModal} className="text-gray-500 hover:text-gray-700">
@@ -490,35 +495,35 @@ export default function ReceptionPage() {
 
             <form onSubmit={handlePatientSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">الاسم الكامل *</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">الاسم الكامل *</label>
                 <input
                   type="text"
                   required
                   value={patientFormData.fullName}
                   onChange={(e) => setPatientFormData({ ...patientFormData, fullName: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">تاريخ الميلاد *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">تاريخ الميلاد *</label>
                   <input
                     type="date"
                     required
                     value={patientFormData.birthDate}
                     onChange={(e) => setPatientFormData({ ...patientFormData, birthDate: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">الجنس *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">الجنس *</label>
                   <select
                     required
                     value={patientFormData.gender}
                     onChange={(e) => setPatientFormData({ ...patientFormData, gender: e.target.value as Gender })}
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
                     <option value={Gender.MALE}>ذكر</option>
                     <option value={Gender.FEMALE}>أنثى</option>
@@ -528,44 +533,44 @@ export default function ReceptionPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">رقم الهاتف</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">رقم الهاتف</label>
                   <input
                     type="tel"
                     value={patientFormData.phone}
                     onChange={(e) => setPatientFormData({ ...patientFormData, phone: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">فصيلة الدم</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">فصيلة الدم</label>
                   <input
                     type="text"
                     value={patientFormData.bloodType}
                     onChange={(e) => setPatientFormData({ ...patientFormData, bloodType: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     placeholder="مثال: A+"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">العنوان</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">العنوان</label>
                 <input
                   type="text"
                   value={patientFormData.address}
                   onChange={(e) => setPatientFormData({ ...patientFormData, address: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">جهة الاتصال للطوارئ</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">جهة الاتصال للطوارئ</label>
                 <input
                   type="text"
                   value={patientFormData.emergencyContact}
                   onChange={(e) => setPatientFormData({ ...patientFormData, emergencyContact: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="الاسم ورقم الهاتف"
                 />
               </div>
@@ -666,12 +671,12 @@ export default function ReceptionPage() {
 
             <form onSubmit={handleAppointmentSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">المريض *</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">المريض *</label>
                 <select
                   required
                   value={appointmentFormData.patientId || ''}
                   onChange={(e) => setAppointmentFormData({ ...appointmentFormData, patientId: parseInt(e.target.value) })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 >
                   <option value="">اختر المريض</option>
                   {patients.map((patient) => (
@@ -683,12 +688,12 @@ export default function ReceptionPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">الطبيب *</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">الطبيب *</label>
                 <select
                   required
                   value={appointmentFormData.doctorId || ''}
                   onChange={(e) => setAppointmentFormData({ ...appointmentFormData, doctorId: parseInt(e.target.value) })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 >
                   <option value="">اختر الطبيب</option>
                   {doctors.map((doctor) => (
@@ -700,34 +705,34 @@ export default function ReceptionPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">التاريخ والوقت *</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">التاريخ والوقت *</label>
                 <input
                   type="datetime-local"
                   required
                   value={appointmentFormData.date}
                   onChange={(e) => setAppointmentFormData({ ...appointmentFormData, date: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">سبب الزيارة</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">سبب الزيارة</label>
                 <input
                   type="text"
                   value={appointmentFormData.reason}
                   onChange={(e) => setAppointmentFormData({ ...appointmentFormData, reason: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="مثال: كشف عام، متابعة، ألم..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">ملاحظات</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">ملاحظات</label>
                 <textarea
                   rows={2}
                   value={appointmentFormData.notes}
                   onChange={(e) => setAppointmentFormData({ ...appointmentFormData, notes: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="أي ملاحظات إضافية..."
                 />
               </div>

@@ -36,6 +36,11 @@ export const authApi = {
     return response.data;
   },
 
+  changePassword: async (data: { currentPassword: string; newPassword: string }): Promise<{ message: string }> => {
+    const response = await apiClient.patch<{ message: string }>('/auth/change-password', data);
+    return response.data;
+  },
+
   logout: () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("accessToken");

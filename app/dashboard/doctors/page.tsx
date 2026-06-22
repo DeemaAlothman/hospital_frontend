@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, User } from 'lucide-react';
 import { Doctor, CreateDoctorDto } from '@/types';
-import { doctorsApi } from '@/lib/api/doctors';
+import { doctorsApi, UnassignedDoctor } from '@/lib/api/doctors';
 import { toast } from 'react-toastify';
 import { useConfirm } from '@/hooks/useConfirm';
 
 export default function DoctorsPage() {
   const { confirm, ConfirmComponent } = useConfirm();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [availableUsers, setAvailableUsers] = useState<UnassignedDoctor[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,19 +20,25 @@ export default function DoctorsPage() {
   });
 
   useEffect(() => {
-    fetchDoctors();
+    fetchData();
   }, []);
 
-  const fetchDoctors = async () => {
+  const fetchData = async () => {
     try {
-      const data = await doctorsApi.getAll();
-      setDoctors(data);
+      const [doctorsData, unassignedData] = await Promise.all([
+        doctorsApi.getAll(),
+        doctorsApi.getUnassigned(),
+      ]);
+      setDoctors(doctorsData);
+      setAvailableUsers(unassignedData);
     } catch (error: any) {
-      toast.error('فشل تحميل الأطباء');
+      toast.error('فشل تحميل البيانات');
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchDoctors = fetchData;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,25 +180,28 @@ export default function DoctorsPage() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  User ID *
+                  المستخدم *
                 </label>
-                <input
-                  type="number"
+                <select
                   required
-                  min="1"
                   value={formData.userId || ''}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      userId: parseInt(e.target.value),
-                    })
+                    setFormData({ ...formData, userId: parseInt(e.target.value) })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="أدخل رقم المستخدم"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  يجب أن يكون المستخدم موجوداً وله دور DOCTOR
-                </p>
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
+                >
+                  <option value="">اختر المستخدم</option>
+                  {availableUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.fullName} — {u.email}
+                    </option>
+                  ))}
+                </select>
+                {availableUsers.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    لا يوجد مستخدمون بدور DOCTOR غير مسجلين كأطباء
+                  </p>
+                )}
               </div>
 
               <div>
@@ -204,7 +214,7 @@ export default function DoctorsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, speciality: e.target.value })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="مثال: طب الأطفال، جراحة، باطنية"
                 />
               </div>

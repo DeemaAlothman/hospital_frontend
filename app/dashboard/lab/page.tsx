@@ -18,10 +18,12 @@ import { patientsApi } from '@/lib/api/patients';
 import { visitsApi } from '@/lib/api/visits';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '@/stores/authStore';
+import { useConfirm } from '@/hooks/useConfirm';
 
 type TabType = 'tests' | 'requests';
 
 export default function LabPage() {
+  const { confirm, ConfirmComponent } = useConfirm();
   const { user } = useAuthStore();
   const isDoctor = user?.role === UserRole.DOCTOR;
   const isAdmin = user?.role === UserRole.ADMIN;
@@ -48,7 +50,8 @@ export default function LabPage() {
   const [resultFormData, setResultFormData] = useState<UpdateLabResultDto>({
     resultValue: '',
     unit: '',
-    referenceRange: '',
+    referenceRangeMin: undefined,
+    referenceRangeMax: undefined,
     resultAt: '',
     notes: '',
   });
@@ -153,7 +156,8 @@ export default function LabPage() {
   };
 
   const handleDeleteTest = async (id: number) => {
-    if (!confirm('هل أنت متأكد من حذف هذا التحليل؟')) return;
+    const confirmed = await confirm({ title: 'تأكيد الحذف', message: 'هل أنت متأكد من حذف هذا التحليل؟', confirmText: 'حذف', type: 'danger' });
+    if (!confirmed) return;
 
     try {
       await labTestsApi.delete(id);
@@ -231,7 +235,8 @@ export default function LabPage() {
   };
 
   const handleDeleteRequest = async (id: number) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الطلب؟')) return;
+    const confirmed2 = await confirm({ title: 'تأكيد الحذف', message: 'هل أنت متأكد من حذف هذا الطلب؟', confirmText: 'حذف', type: 'danger' });
+    if (!confirmed2) return;
 
     try {
       await labRequestsApi.delete(id);
@@ -260,7 +265,8 @@ export default function LabPage() {
     setResultFormData({
       resultValue: item.resultValue || '',
       unit: item.unit || '',
-      referenceRange: item.referenceRange || '',
+      referenceRangeMin: item.referenceRangeMin ?? undefined,
+      referenceRangeMax: item.referenceRangeMax ?? undefined,
       resultAt: item.resultAt ? item.resultAt.split('T')[0] : '',
       notes: item.notes || '',
     });
@@ -567,7 +573,7 @@ export default function LabPage() {
                   required
                   value={testFormData.name}
                   onChange={(e) => setTestFormData({ ...testFormData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أدخل اسم التحليل"
                 />
               </div>
@@ -578,7 +584,7 @@ export default function LabPage() {
                   type="text"
                   value={testFormData.category}
                   onChange={(e) => setTestFormData({ ...testFormData, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="مثال: كيمياء، دم، بول..."
                 />
               </div>
@@ -592,7 +598,7 @@ export default function LabPage() {
                   required
                   value={testFormData.price}
                   onChange={(e) => setTestFormData({ ...testFormData, price: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="0.00"
                 />
               </div>
@@ -634,7 +640,7 @@ export default function LabPage() {
                   required
                   value={requestFormData.visitId || ''}
                   onChange={(e) => setRequestFormData({ ...requestFormData, visitId: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                 >
                   <option value="">اختر الزيارة</option>
                   {visits.map((visit) => {
@@ -656,7 +662,7 @@ export default function LabPage() {
                     <select
                       value={currentItem.testId || ''}
                       onChange={(e) => setCurrentItem({ ...currentItem, testId: parseInt(e.target.value) })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                     >
                       <option value="">اختر التحليل</option>
                       {tests.map((test) => (
@@ -673,7 +679,7 @@ export default function LabPage() {
                       type="text"
                       value={currentItem.notes}
                       onChange={(e) => setCurrentItem({ ...currentItem, notes: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                       placeholder="ملاحظات إضافية..."
                     />
                   </div>
@@ -722,7 +728,7 @@ export default function LabPage() {
                   value={requestFormData.notes}
                   onChange={(e) => setRequestFormData({ ...requestFormData, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أي ملاحظات إضافية..."
                 />
               </div>
@@ -819,10 +825,12 @@ export default function LabPage() {
                               <span className="text-gray-600">النتيجة: </span>
                               <span className="font-medium text-gray-900">{item.resultValue} {item.unit}</span>
                             </div>
-                            {item.referenceRange && (
+                            {item.referenceRangeMin != null && item.referenceRangeMax != null && (
                               <div>
                                 <span className="text-gray-600">المدى الطبيعي: </span>
-                                <span className="font-medium text-gray-900">{item.referenceRange}</span>
+                                <span className="font-medium text-gray-900">
+                                  {item.referenceRangeMin} — {item.referenceRangeMax} {item.unit}
+                                </span>
                               </div>
                             )}
                             {item.resultAt && (
@@ -928,7 +936,7 @@ export default function LabPage() {
                   required
                   value={resultFormData.resultValue}
                   onChange={(e) => setResultFormData({ ...resultFormData, resultValue: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أدخل النتيجة"
                 />
               </div>
@@ -939,20 +947,34 @@ export default function LabPage() {
                   type="text"
                   value={resultFormData.unit}
                   onChange={(e) => setResultFormData({ ...resultFormData, unit: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="مثال: mg/dL, mmol/L"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">المدى الطبيعي</label>
-                <input
-                  type="text"
-                  value={resultFormData.referenceRange}
-                  onChange={(e) => setResultFormData({ ...resultFormData, referenceRange: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="مثال: 70-100"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">الحد الأدنى للنطاق الطبيعي</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={resultFormData.referenceRangeMin ?? ''}
+                    onChange={(e) => setResultFormData({ ...resultFormData, referenceRangeMin: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
+                    placeholder="مثال: 3.5"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">الحد الأقصى للنطاق الطبيعي</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={resultFormData.referenceRangeMax ?? ''}
+                    onChange={(e) => setResultFormData({ ...resultFormData, referenceRangeMax: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
+                    placeholder="مثال: 5.5"
+                  />
+                </div>
               </div>
 
               <div>
@@ -961,7 +983,7 @@ export default function LabPage() {
                   type="date"
                   value={resultFormData.resultAt}
                   onChange={(e) => setResultFormData({ ...resultFormData, resultAt: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                 />
               </div>
 
@@ -971,7 +993,7 @@ export default function LabPage() {
                   value={resultFormData.notes}
                   onChange={(e) => setResultFormData({ ...resultFormData, notes: e.target.value })}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="ملاحظات إضافية..."
                 />
               </div>
@@ -997,6 +1019,7 @@ export default function LabPage() {
           </div>
         </div>
       )}
+      <ConfirmComponent />
     </div>
   );
 }

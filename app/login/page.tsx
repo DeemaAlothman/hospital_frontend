@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'react-toastify';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
 
   const [formData, setFormData] = useState({
@@ -16,25 +18,9 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      const user = await login(formData);
+      await login(formData);
       toast.success('تم تسجيل الدخول بنجاح');
-
-      // التوجيه حسب دور المستخدم
-      if (user.role === 'RECEPTIONIST') {
-        window.location.href = '/dashboard/reception';
-      } else if (user.role === 'DOCTOR') {
-        window.location.href = '/dashboard/doctor';
-      } else if (user.role === 'PHARMACIST') {
-        window.location.href = '/dashboard/pharmacy';
-      } else if (user.role === 'LAB_TECH') {
-        window.location.href = '/dashboard/lab-tech';
-      } else if (user.role === 'RADIOLOGY_TECH') {
-        window.location.href = '/dashboard/radiology-tech';
-      } else if (user.role === 'CASHIER') {
-        window.location.href = '/dashboard/cashier';
-      } else {
-        window.location.href = '/dashboard';
-      }
+      router.push('/dashboard');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'فشل تسجيل الدخول');
     }
@@ -146,19 +132,7 @@ export default function LoginPage() {
         </form>
 
         {/* Demo Credentials */}
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600 text-center mb-2">
-            بيانات المسؤول الافتراضية:
-          </p>
-          <div className="text-xs text-gray-700 space-y-1 text-center">
-            <p>
-              <strong>البريد:</strong> admin@hospital.local
-            </p>
-            <p>
-              <strong>كلمة المرور:</strong> Admin@123456
-            </p>
-          </div>
-        </div>
+        
       </div>
     </div>
   );

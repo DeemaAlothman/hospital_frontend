@@ -3,17 +3,24 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { labRequestsApi } from '@/lib/api/lab-requests';
+import { invoicesApi } from '@/lib/api/invoices';
 import {
   LabRequest,
   LabRequestStatus,
   UpdateLabResultDto,
+  Invoice,
+  InvoiceStatus,
 } from '@/types';
 import { toast } from 'react-toastify';
-import { FlaskConical, Search, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { FlaskConical, Search, AlertCircle, CheckCircle, Clock, Receipt } from 'lucide-react';
+
+type TabType = 'requests' | 'invoices';
 
 export default function LabTechPage() {
   const { user } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<TabType>('requests');
   const [requests, setRequests] = useState<LabRequest[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<LabRequestStatus | 'ALL'>('ALL');
@@ -23,7 +30,8 @@ export default function LabTechPage() {
   const [resultForm, setResultForm] = useState<UpdateLabResultDto>({
     resultValue: '',
     unit: '',
-    referenceRange: '',
+    referenceRangeMin: undefined,
+    referenceRangeMax: undefined,
     resultAt: new Date().toISOString().slice(0, 16),
     notes: '',
   });
@@ -46,8 +54,12 @@ export default function LabTechPage() {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const data = await labRequestsApi.getAll();
-      setRequests(data);
+      const [requestsData, invoicesData] = await Promise.all([
+        labRequestsApi.getAll(),
+        invoicesApi.getAll().catch(() => []),
+      ]);
+      setRequests(requestsData);
+      setInvoices(invoicesData);
     } catch (error: any) {
       console.error('خطأ في جلب الطلبات:', error);
       toast.error('فشل تحميل طلبات التحاليل');
@@ -103,7 +115,8 @@ export default function LabTechPage() {
     setResultForm({
       resultValue: item.resultValue || '',
       unit: item.unit || '',
-      referenceRange: item.referenceRange || '',
+      referenceRangeMin: item.referenceRangeMin ?? undefined,
+      referenceRangeMax: item.referenceRangeMax ?? undefined,
       resultAt: item.resultAt ? new Date(item.resultAt).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
       notes: item.notes || '',
     });
@@ -115,7 +128,8 @@ export default function LabTechPage() {
     setResultForm({
       resultValue: '',
       unit: '',
-      referenceRange: '',
+      referenceRangeMin: undefined,
+      referenceRangeMax: undefined,
       resultAt: new Date().toISOString().slice(0, 16),
       notes: '',
     });
@@ -149,6 +163,15 @@ export default function LabTechPage() {
         {labels[status]}
       </span>
     );
+  };
+
+  const getResultStatus = (item: { resultValue?: string; referenceRangeMin?: number; referenceRangeMax?: number }) => {
+    if (!item.resultValue || item.referenceRangeMin == null || item.referenceRangeMax == null) return null;
+    const val = parseFloat(item.resultValue);
+    if (isNaN(val)) return null;
+    if (val < item.referenceRangeMin) return { label: 'منخفض', color: 'text-blue-600' };
+    if (val > item.referenceRangeMax) return { label: 'مرتفع', color: 'text-red-600' };
+    return { label: 'طبيعي', color: 'text-green-600' };
   };
 
   const getStatusIcon = (status: LabRequestStatus) => {
@@ -186,6 +209,89 @@ export default function LabTechPage() {
         <p className="text-gray-600">معالجة طلبات التحاليل وإدخال النتائج</p>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-4 mb-6 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('requests')}
+          className={`pb-3 px-4 font-medium transition-colors ${
+            activeTab === 'requests'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <FlaskConical size={20} />
+            طلبات التحاليل
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('invoices')}
+          className={`pb-3 px-4 font-medium transition-colors ${
+            activeTab === 'invoices'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Receipt size={20} />
+            الفواتير
+          </div>
+        </button>
+      </div>
+
+      {activeTab === 'invoices' ? (
+        <div>
+          <h2 className="text-2xl font-bold mb-6">فواتير المختبر</h2>
+          {invoices.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <Receipt size={64} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500 text-lg">لا توجد فواتير</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المريض</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجمالي قسمك</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">التاريخ</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {invoices.map((invoice) => (
+                    <tr key={invoice.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.id}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {invoice.patient?.fullName || `مريض #${invoice.patientId}`}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {(invoice.departmentTotal ?? parseFloat(invoice.finalAmount)).toFixed(2)} ر.س
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          invoice.status === InvoiceStatus.PAID
+                            ? 'bg-green-100 text-green-800'
+                            : invoice.status === InvoiceStatus.PENDING
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {invoice.status === InvoiceStatus.PAID ? 'مدفوعة' : invoice.status === InvoiceStatus.PENDING ? 'معلقة' : 'ملغاة'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(invoice.createdAt).toLocaleDateString('ar-SA')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : (
+      <>
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -350,11 +456,19 @@ export default function LabTechPage() {
                               <span className="font-medium mr-2">
                                 {item.resultValue} {item.unit}
                               </span>
+                              {(() => {
+                                const status = getResultStatus(item);
+                                return status ? (
+                                  <span className={`font-bold mr-1 ${status.color}`}>({status.label})</span>
+                                ) : null;
+                              })()}
                             </div>
-                            {item.referenceRange && (
+                            {item.referenceRangeMin != null && item.referenceRangeMax != null && (
                               <div>
-                                <span className="text-gray-600">المدى المرجعي:</span>
-                                <span className="font-medium mr-2">{item.referenceRange}</span>
+                                <span className="text-gray-600">النطاق الطبيعي:</span>
+                                <span className="font-medium mr-2">
+                                  {item.referenceRangeMin} — {item.referenceRangeMax} {item.unit}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -399,6 +513,9 @@ export default function LabTechPage() {
         </div>
       </div>
 
+      </>
+      )}
+
       {/* Result Modal */}
       {showResultModal && selectedItem && (
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -440,17 +557,33 @@ export default function LabTechPage() {
               </div>
 
               {/* Reference Range */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  المدى المرجعي
-                </label>
-                <input
-                  type="text"
-                  value={resultForm.referenceRange}
-                  onChange={(e) => setResultForm({ ...resultForm, referenceRange: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="مثال: 70-100"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    الحد الأدنى للنطاق الطبيعي
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={resultForm.referenceRangeMin ?? ''}
+                    onChange={(e) => setResultForm({ ...resultForm, referenceRangeMin: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="مثال: 3.5"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    الحد الأقصى للنطاق الطبيعي
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={resultForm.referenceRangeMax ?? ''}
+                    onChange={(e) => setResultForm({ ...resultForm, referenceRangeMax: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="مثال: 5.5"
+                  />
+                </div>
               </div>
 
               {/* Result Date */}

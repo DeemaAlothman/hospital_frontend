@@ -29,4 +29,10 @@ export const usersApi = {
     const response = await apiClient.get<UserStats[]>("/users/stats");
     return response.data;
   },
+
+  // إعادة تعيين كلمة سر موظف (Admin فقط)
+  resetPassword: async (id: number, data: { newPassword: string }): Promise<{ message: string }> => {
+    const response = await apiClient.patch<{ message: string }>(`/users/${id}/reset-password`, data);
+    return response.data;
+  },
 };

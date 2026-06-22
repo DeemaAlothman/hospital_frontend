@@ -548,17 +548,17 @@ export default function DoctorPage() {
                     const doctor = doctors.find((d) => d.id === visit.doctorId);
                     return (
                       <tr key={visit.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {patient?.fullName || `مريض #${visit.patientId}`}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {doctor?.user?.fullName || `طبيب #${visit.doctorId}`}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           {new Date(visit.visitDate).toLocaleString('ar-SA')}
                         </td>
-                        <td className="px-6 py-4 text-sm">{visit.diagnosis || '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 text-sm text-gray-900">{visit.diagnosis || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <button
                             onClick={() => {
                               setEditingVisit(visit);
@@ -708,13 +708,13 @@ export default function DoctorPage() {
                     const patient = patients.find((p) => p.id === request.patientId);
                     return (
                       <tr key={request.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {patient?.fullName || `مريض #${request.patientId}`}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           {new Date(request.createdAt).toLocaleDateString('ar-SA')}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">{request.items?.length || 0}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.items?.length || 0}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
                             {request.status}
@@ -774,13 +774,13 @@ export default function DoctorPage() {
                     const patient = patients.find((p) => p.id === request.patientId);
                     return (
                       <tr key={request.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {patient?.fullName || `مريض #${request.patientId}`}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           {new Date(request.createdAt).toLocaleDateString('ar-SA')}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">{request.items?.length || 0}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.items?.length || 0}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
                             {request.status}
@@ -822,13 +822,13 @@ export default function DoctorPage() {
                     const patient = patients.find((p) => p.id === appointment.patientId);
                     return (
                       <tr key={appointment.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {patient?.fullName || `مريض #${appointment.patientId}`}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           {new Date(appointment.date).toLocaleString('ar-SA')}
                         </td>
-                        <td className="px-6 py-4 text-sm">{appointment.reason || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{appointment.reason || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
                             {appointment.status}
@@ -869,13 +869,13 @@ export default function DoctorPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {medicines.map((medicine) => (
                     <tr key={medicine.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {medicine.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {medicine.category || '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <span className={`px-2 py-1 text-xs rounded-full ${
                           medicine.stock > 50
                             ? 'bg-green-100 text-green-800'
@@ -886,10 +886,10 @@ export default function DoctorPage() {
                           {medicine.stock}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {parseFloat(String(medicine.price)).toFixed(2)} ريال
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {medicine.expirationDate ? new Date(medicine.expirationDate).toLocaleDateString('ar-SA') : '-'}
                       </td>
                     </tr>
@@ -914,12 +914,12 @@ export default function DoctorPage() {
 
             <form onSubmit={handleVisitSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">المريض *</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">المريض *</label>
                 <select
                   required
                   value={visitFormData.patientId || ''}
                   onChange={(e) => setVisitFormData({ ...visitFormData, patientId: parseInt(e.target.value) })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 >
                   <option value="">اختر المريض</option>
                   {patients.map((patient) => (
@@ -931,45 +931,45 @@ export default function DoctorPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">تاريخ ووقت الزيارة *</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">تاريخ ووقت الزيارة *</label>
                 <input
                   type="datetime-local"
                   required
                   value={visitFormData.visitDate}
                   onChange={(e) => setVisitFormData({ ...visitFormData, visitDate: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">الشكوى الرئيسية</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">الشكوى الرئيسية</label>
                 <textarea
                   rows={2}
                   value={visitFormData.chiefComplaint}
                   onChange={(e) => setVisitFormData({ ...visitFormData, chiefComplaint: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="الأعراض التي يشكو منها المريض..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">التشخيص</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">التشخيص</label>
                 <textarea
                   rows={3}
                   value={visitFormData.diagnosis}
                   onChange={(e) => setVisitFormData({ ...visitFormData, diagnosis: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="التشخيص الطبي..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">ملاحظات</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">ملاحظات</label>
                 <textarea
                   rows={2}
                   value={visitFormData.notes}
                   onChange={(e) => setVisitFormData({ ...visitFormData, notes: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="ملاحظات إضافية..."
                 />
               </div>
@@ -1010,14 +1010,14 @@ export default function DoctorPage() {
             <form onSubmit={handlePrescriptionSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">المريض *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">المريض *</label>
                   <select
                     required
                     value={prescriptionFormData.patientId || ''}
                     onChange={(e) =>
                       setPrescriptionFormData({ ...prescriptionFormData, patientId: parseInt(e.target.value) })
                     }
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
                     <option value="">اختر المريض</option>
                     {patients.map((patient) => (
@@ -1029,14 +1029,14 @@ export default function DoctorPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">الزيارة *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">الزيارة *</label>
                   <select
                     required
                     value={prescriptionFormData.visitId || ''}
                     onChange={(e) =>
                       setPrescriptionFormData({ ...prescriptionFormData, visitId: parseInt(e.target.value) })
                     }
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
                     <option value="">اختر الزيارة</option>
                     {visits&&visits.map((visit) => (
@@ -1052,13 +1052,13 @@ export default function DoctorPage() {
                 <h3 className="font-semibold mb-3">إضافة دواء</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
                   <div>
-                    <label className="block text-sm mb-1">الدواء *</label>
+                    <label className="block text-sm mb-1 text-gray-700">الدواء *</label>
                     <select
                       value={currentMedicineItem.medicineId || ''}
                       onChange={(e) =>
                         setCurrentMedicineItem({ ...currentMedicineItem, medicineId: parseInt(e.target.value) })
                       }
-                      className="w-full border rounded px-2 py-1 text-sm"
+                      className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     >
                       <option value="">اختر الدواء</option>
                       {medicines.map((medicine) => (
@@ -1069,32 +1069,32 @@ export default function DoctorPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm mb-1">الجرعة *</label>
+                    <label className="block text-sm mb-1 text-gray-700">الجرعة *</label>
                     <input
                       type="text"
                       value={currentMedicineItem.dosage}
                       onChange={(e) => setCurrentMedicineItem({ ...currentMedicineItem, dosage: e.target.value })}
-                      className="w-full border rounded px-2 py-1 text-sm"
+                      className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                       placeholder="مثال: 500mg"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm mb-1">التكرار</label>
+                    <label className="block text-sm mb-1 text-gray-700">التكرار</label>
                     <input
                       type="text"
                       value={currentMedicineItem.frequency}
                       onChange={(e) => setCurrentMedicineItem({ ...currentMedicineItem, frequency: e.target.value })}
-                      className="w-full border rounded px-2 py-1 text-sm"
+                      className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                       placeholder="مثال: 3 مرات يومياً"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm mb-1">المدة</label>
+                    <label className="block text-sm mb-1 text-gray-700">المدة</label>
                     <input
                       type="text"
                       value={currentMedicineItem.duration}
                       onChange={(e) => setCurrentMedicineItem({ ...currentMedicineItem, duration: e.target.value })}
-                      className="w-full border rounded px-2 py-1 text-sm"
+                      className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                       placeholder="مثال: 7 أيام"
                     />
                   </div>
@@ -1136,12 +1136,12 @@ export default function DoctorPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">ملاحظات</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">ملاحظات</label>
                 <textarea
                   rows={2}
                   value={prescriptionFormData.notes}
                   onChange={(e) => setPrescriptionFormData({ ...prescriptionFormData, notes: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
 
@@ -1181,12 +1181,12 @@ export default function DoctorPage() {
             <form onSubmit={handleLabSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">المريض *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">المريض *</label>
                   <select
                     required
                     value={labFormData.patientId || ''}
                     onChange={(e) => setLabFormData({ ...labFormData, patientId: parseInt(e.target.value) })}
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
                     <option value="">اختر المريض</option>
                     {patients.map((patient) => (
@@ -1198,12 +1198,12 @@ export default function DoctorPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">الزيارة *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">الزيارة *</label>
                   <select
                     required
                     value={labFormData.visitId || ''}
                     onChange={(e) => setLabFormData({ ...labFormData, visitId: parseInt(e.target.value) })}
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
                     <option value="">اختر الزيارة</option>
                     {visits&&visits.map((visit) => (
@@ -1219,11 +1219,11 @@ export default function DoctorPage() {
                 <h3 className="font-semibold mb-3">إضافة تحليل</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                   <div>
-                    <label className="block text-sm mb-1">التحليل *</label>
+                    <label className="block text-sm mb-1 text-gray-700">التحليل *</label>
                     <select
                       value={currentLabItem.testId || ''}
                       onChange={(e) => setCurrentLabItem({ ...currentLabItem, testId: parseInt(e.target.value) })}
-                      className="w-full border rounded px-2 py-1 text-sm"
+                      className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     >
                       <option value="">اختر التحليل</option>
                       {labTests.map((test) => (
@@ -1234,12 +1234,12 @@ export default function DoctorPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm mb-1">ملاحظات</label>
+                    <label className="block text-sm mb-1 text-gray-700">ملاحظات</label>
                     <input
                       type="text"
                       value={currentLabItem.notes}
                       onChange={(e) => setCurrentLabItem({ ...currentLabItem, notes: e.target.value })}
-                      className="w-full border rounded px-2 py-1 text-sm"
+                      className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                       placeholder="ملاحظات خاصة بالتحليل"
                     />
                   </div>
@@ -1280,12 +1280,12 @@ export default function DoctorPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">ملاحظات عامة</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">ملاحظات عامة</label>
                 <textarea
                   rows={2}
                   value={labFormData.notes}
                   onChange={(e) => setLabFormData({ ...labFormData, notes: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
 
@@ -1325,14 +1325,14 @@ export default function DoctorPage() {
             <form onSubmit={handleRadiologySubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">المريض *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">المريض *</label>
                   <select
                     required
                     value={radiologyFormData.patientId || ''}
                     onChange={(e) =>
                       setRadiologyFormData({ ...radiologyFormData, patientId: parseInt(e.target.value) })
                     }
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
                     <option value="">اختر المريض</option>
                     {patients.map((patient) => (
@@ -1344,12 +1344,12 @@ export default function DoctorPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">الزيارة *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">الزيارة *</label>
                   <select
                     required
                     value={radiologyFormData.visitId || ''}
                     onChange={(e) => setRadiologyFormData({ ...radiologyFormData, visitId: parseInt(e.target.value) })}
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
                     <option value="">اختر الزيارة</option>
                     {visits&&visits.map((visit) => (
@@ -1383,12 +1383,12 @@ export default function DoctorPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">ملاحظات</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">ملاحظات</label>
                 <textarea
                   rows={2}
                   value={radiologyFormData.notes}
                   onChange={(e) => setRadiologyFormData({ ...radiologyFormData, notes: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
 

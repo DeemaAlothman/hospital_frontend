@@ -164,12 +164,12 @@ export default function DoctorRadiologyRequestsPage() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">طلبات الأشعة</h1>
+        <h1 className="text-3xl font-bold mb-2 text-gray-900">طلبات الأشعة</h1>
         <p className="text-gray-600">عرض وإدارة طلبات الأشعة الخاصة بك</p>
       </div>
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">طلباتي</h2>
+        <h2 className="text-2xl font-bold text-gray-900">طلباتي</h2>
         <button
           onClick={() => {
             setFormData({
@@ -210,14 +210,14 @@ export default function DoctorRadiologyRequestsPage() {
                 const patient = patients.find((p) => p.id === request.patientId);
                 return (
                   <tr key={request.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">#{request.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{request.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {patient?.fullName || `مريض #${request.patientId}`}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {new Date(request.createdAt).toLocaleDateString('ar-SA')}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">{request.items?.length || 0}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{request.items?.length || 0}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
                         {request.status}
@@ -244,12 +244,12 @@ export default function DoctorRadiologyRequestsPage() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">الزيارة *</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">الزيارة *</label>
                 <select
                   required
                   value={formData.visitId || ''}
                   onChange={(e) => setFormData({ ...formData, visitId: parseInt(e.target.value) })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 >
                   <option value="">اختر الزيارة</option>
                   {visits&&visits.map((visit) => (
@@ -261,8 +261,8 @@ export default function DoctorRadiologyRequestsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">فحوصات الأشعة المطلوبة *</label>
-                <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-2">
+                <label className="block text-sm font-medium mb-2 text-gray-700">فحوصات الأشعة المطلوبة *</label>
+                <div className="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto space-y-2">
                   {radiologyTests.map((test) => (
                     <label key={test.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
                       <input
@@ -284,12 +284,12 @@ export default function DoctorRadiologyRequestsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">ملاحظات</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">ملاحظات</label>
                 <textarea
                   rows={2}
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
 

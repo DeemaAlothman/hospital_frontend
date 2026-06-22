@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Invoice, CreateInvoiceDto, AddInvoiceItemDto, QueryInvoicesDto } from '@/types';
+import { Invoice, CreateInvoiceDto, AddInvoiceItemDto, QueryInvoicesDto, InvoiceStats } from '@/types';
 
 export const invoicesApi = {
   getAll: async (params?: QueryInvoicesDto): Promise<Invoice[]> => {
@@ -29,6 +29,11 @@ export const invoicesApi = {
 
   cancel: async (id: number): Promise<Invoice> => {
     const response = await apiClient.delete<Invoice>(`/invoices/${id}`);
+    return response.data;
+  },
+
+  getStats: async (): Promise<InvoiceStats[]> => {
+    const response = await apiClient.get<InvoiceStats[]>('/invoices/stats');
     return response.data;
   },
 };

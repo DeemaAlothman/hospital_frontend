@@ -14,8 +14,13 @@ import { appointmentsApi } from '@/lib/api/appointments';
 import { patientsApi } from '@/lib/api/patients';
 import { doctorsApi } from '@/lib/api/doctors';
 import { toast } from 'react-toastify';
+import { useConfirm } from '@/hooks/useConfirm';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function AppointmentsPage() {
+  const { confirm, ConfirmComponent } = useConfirm();
+  const { user } = useAuthStore();
+  const canAddAppointment = user && ['ADMIN', 'RECEPTIONIST', 'DOCTOR'].includes(user.role);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -59,18 +64,28 @@ export default function AppointmentsPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    const submitData = {
+      ...formData,
+      date: formData.date ? new Date(formData.date).toISOString() : formData.date,
+    };
+
     try {
       if (editingAppointment) {
-        await appointmentsApi.update(editingAppointment.id, formData);
+        await appointmentsApi.update(editingAppointment.id, submitData);
         toast.success('تم تحديث الموعد بنجاح');
       } else {
-        await appointmentsApi.create(formData);
+        await appointmentsApi.create(submitData);
         toast.success('تم إضافة الموعد بنجاح');
       }
       handleCloseModal();
       fetchData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'فشل العملية');
+      const msg: string = error.response?.data?.message || '';
+      if (error.response?.status === 400 && msg.includes('موعد آخر')) {
+        toast.error('هذا الدكتور غير متاح في الوقت المحدد، يرجى اختيار وقت آخر');
+      } else {
+        toast.error(msg || 'فشل العملية');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -90,7 +105,8 @@ export default function AppointmentsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الموعد؟')) return;
+    const confirmed = await confirm({ title: 'تأكيد الحذف', message: 'هل أنت متأكد من حذف هذا الموعد؟', confirmText: 'حذف', type: 'danger' });
+    if (!confirmed) return;
 
     try {
       await appointmentsApi.delete(id);
@@ -128,12 +144,12 @@ export default function AppointmentsPage() {
     switch (status) {
       case AppointmentStatus.SCHEDULED:
         return 'bg-blue-100 text-blue-800';
-      case AppointmentStatus.CONFIRMED:
-        return 'bg-green-100 text-green-800';
       case AppointmentStatus.COMPLETED:
         return 'bg-gray-100 text-gray-800';
       case AppointmentStatus.CANCELLED:
         return 'bg-red-100 text-red-800';
+      case AppointmentStatus.NO_SHOW:
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -142,13 +158,13 @@ export default function AppointmentsPage() {
   const getStatusLabel = (status: AppointmentStatus) => {
     switch (status) {
       case AppointmentStatus.SCHEDULED:
-        return 'مجدول';
-      case AppointmentStatus.CONFIRMED:
-        return 'مؤكد';
+        return 'مجدول / مؤكد';
       case AppointmentStatus.COMPLETED:
         return 'مكتمل';
       case AppointmentStatus.CANCELLED:
         return 'ملغي';
+      case AppointmentStatus.NO_SHOW:
+        return 'لم يحضر';
       default:
         return status;
     }
@@ -177,13 +193,15 @@ export default function AppointmentsPage() {
           <h1 className="text-3xl font-bold text-gray-900">إدارة المواعيد</h1>
           <p className="text-gray-600 mt-2">عرض وإدارة جميع المواعيد الطبية</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
-        >
-          <Plus size={20} />
-          إضافة موعد جديد
-        </button>
+        {canAddAppointment && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+          >
+            <Plus size={20} />
+            إضافة موعد جديد
+          </button>
+        )}
       </div>
 
       {/* Appointments List */}
@@ -251,6 +269,7 @@ export default function AppointmentsPage() {
                 )}
 
                 {/* Actions */}
+                {canAddAppointment && (
                 <div className="flex gap-2 pt-4 border-t border-gray-200">
                   <button
                     onClick={() => handleEdit(appointment)}
@@ -267,15 +286,18 @@ export default function AppointmentsPage() {
                     حذف
                   </button>
                 </div>
+                )}
               </div>
             );
           })}
         </div>
       )}
 
+      <ConfirmComponent />
+
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -295,7 +317,7 @@ export default function AppointmentsPage() {
                     required
                     value={formData.patientId}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   >
                     <option value={0}>اختر المريض</option>
                     {patients.map((patient) => (
@@ -315,7 +337,7 @@ export default function AppointmentsPage() {
                     required
                     value={formData.doctorId}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   >
                     <option value={0}>اختر الطبيب</option>
                     {doctors.map((doctor) => (
@@ -339,7 +361,7 @@ export default function AppointmentsPage() {
                     required
                     value={formData.date}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   />
                 </div>
 
@@ -352,12 +374,12 @@ export default function AppointmentsPage() {
                     required
                     value={formData.status}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   >
-                    <option value={AppointmentStatus.SCHEDULED}>مجدول</option>
-                    <option value={AppointmentStatus.CONFIRMED}>مؤكد</option>
+                    <option value={AppointmentStatus.SCHEDULED}>مجدول / مؤكد</option>
                     <option value={AppointmentStatus.COMPLETED}>مكتمل</option>
                     <option value={AppointmentStatus.CANCELLED}>ملغي</option>
+                    <option value={AppointmentStatus.NO_SHOW}>لم يحضر</option>
                   </select>
                 </div>
               </div>
@@ -372,7 +394,7 @@ export default function AppointmentsPage() {
                   name="reason"
                   value={formData.reason}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="مثال: كشف دوري، متابعة، ألم..."
                 />
               </div>
@@ -387,7 +409,7 @@ export default function AppointmentsPage() {
                   value={formData.notes}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أي ملاحظات إضافية..."
                 />
               </div>

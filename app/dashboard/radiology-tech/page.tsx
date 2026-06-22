@@ -4,19 +4,24 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { radiologyRequestsApi } from '@/lib/api/radiology-requests';
 import { radiologyTestsApi } from '@/lib/api/radiology-tests';
+import { invoicesApi } from '@/lib/api/invoices';
 import {
   RadiologyRequest,
   RadiologyRequestStatus,
   RadiologyRequestItem,
   RadiologyTest,
   CreateRadiologyTestDto,
+  Invoice,
+  InvoiceStatus,
 } from '@/types';
 import { toast } from 'react-toastify';
-import { ScanLine, Search, AlertCircle, CheckCircle, Clock, ImageIcon, FileText, Plus, Edit2, Trash2 } from 'lucide-react';
+import { ScanLine, Search, AlertCircle, CheckCircle, Clock, ImageIcon, FileText, Plus, Edit2, Trash2, Receipt } from 'lucide-react';
+import { useConfirm } from '@/hooks/useConfirm';
 
-type TabType = 'requests' | 'tests';
+type TabType = 'requests' | 'tests' | 'invoices';
 
 export default function RadiologyTechPage() {
+  const { confirm, ConfirmComponent } = useConfirm();
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabType>('requests');
 
@@ -41,6 +46,9 @@ export default function RadiologyTechPage() {
 
   // Tests state
   const [tests, setTests] = useState<RadiologyTest[]>([]);
+
+  // Invoices
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [showTestModal, setShowTestModal] = useState(false);
   const [editingTest, setEditingTest] = useState<RadiologyTest | null>(null);
   const [testFormData, setTestFormData] = useState<CreateRadiologyTestDto>({
@@ -68,12 +76,14 @@ export default function RadiologyTechPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [requestsData, testsData] = await Promise.all([
+      const [requestsData, testsData, invoicesData] = await Promise.all([
         radiologyRequestsApi.getAll().catch(() => []),
         radiologyTestsApi.getAll().catch(() => []),
+        invoicesApi.getAll().catch(() => []),
       ]);
       setRequests(requestsData);
       setTests(testsData);
+      setInvoices(invoicesData);
     } catch (error: any) {
       console.error('خطأ في جلب البيانات:', error);
       toast.error('فشل تحميل البيانات');
@@ -174,7 +184,8 @@ export default function RadiologyTechPage() {
   };
 
   const handleDeleteTest = async (id: number) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الفحص؟')) return;
+    const confirmed = await confirm({ title: 'تأكيد الحذف', message: 'هل أنت متأكد من حذف هذا الفحص؟', confirmText: 'حذف', type: 'danger' });
+    if (!confirmed) return;
 
     try {
       await radiologyTestsApi.delete(id);
@@ -297,6 +308,19 @@ export default function RadiologyTechPage() {
           <div className="flex items-center gap-2">
             <ScanLine size={20} />
             إدارة الفحوصات
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('invoices')}
+          className={`pb-3 px-4 font-medium transition-colors ${
+            activeTab === 'invoices'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Receipt size={20} />
+            الفواتير
           </div>
         </button>
       </div>
@@ -526,6 +550,57 @@ export default function RadiologyTechPage() {
         </div>
       </div>
         </>
+      ) : activeTab === 'invoices' ? (
+        <div>
+          <h2 className="text-2xl font-bold mb-6">فواتير الأشعة</h2>
+          {invoices.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <Receipt size={64} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500 text-lg">لا توجد فواتير</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المريض</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجمالي قسمك</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">التاريخ</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {invoices.map((invoice) => (
+                    <tr key={invoice.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.id}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {invoice.patient?.fullName || `مريض #${invoice.patientId}`}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {(invoice.departmentTotal ?? parseFloat(invoice.finalAmount)).toFixed(2)} ر.س
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          invoice.status === InvoiceStatus.PAID
+                            ? 'bg-green-100 text-green-800'
+                            : invoice.status === InvoiceStatus.PENDING
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {invoice.status === InvoiceStatus.PAID ? 'مدفوعة' : invoice.status === InvoiceStatus.PENDING ? 'معلقة' : 'ملغاة'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(invoice.createdAt).toLocaleDateString('ar-SA')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       ) : (
         /* Tests Tab */
         tests.length === 0 ? (
@@ -592,7 +667,7 @@ export default function RadiologyTechPage() {
                   required
                   value={testFormData.name}
                   onChange={(e) => setTestFormData({ ...testFormData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أدخل اسم الفحص"
                 />
               </div>
@@ -603,7 +678,7 @@ export default function RadiologyTechPage() {
                   type="text"
                   value={testFormData.category}
                   onChange={(e) => setTestFormData({ ...testFormData, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="مثال: أشعة مقطعية، رنين مغناطيسي..."
                 />
               </div>
@@ -617,7 +692,7 @@ export default function RadiologyTechPage() {
                   step="0.01"
                   value={testFormData.price}
                   onChange={(e) => setTestFormData({ ...testFormData, price: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                 />
               </div>
 
@@ -645,7 +720,7 @@ export default function RadiologyTechPage() {
 
       {/* Result Modal */}
       {showResultModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-xl font-semibold text-gray-900">
@@ -729,6 +804,7 @@ export default function RadiologyTechPage() {
           </div>
         </div>
       )}
+      <ConfirmComponent />
     </div>
   );
 }

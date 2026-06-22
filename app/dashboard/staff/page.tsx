@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, User as UserIcon, Trash2 } from "lucide-react";
+import { Plus, User as UserIcon, KeyRound } from "lucide-react";
 import { RegisterDto, UserRole, User } from "@/types";
 import { authApi } from "@/lib/api/auth";
 import { usersApi } from "@/lib/api/users";
@@ -19,6 +19,10 @@ export default function StaffPage() {
     phone: "",
     role: UserRole.NURSE,
   });
+
+  const [resetTarget, setResetTarget] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   // جلب الموظفين عند تحميل الصفحة
   useEffect(() => {
@@ -68,6 +72,22 @@ export default function StaffPage() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetTarget) return;
+    setIsResetting(true);
+    try {
+      await usersApi.resetPassword(resetTarget.id, { newPassword });
+      toast.success(`تم إعادة تعيين كلمة سر ${resetTarget.fullName} بنجاح`);
+      setResetTarget(null);
+      setNewPassword('');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'فشل إعادة تعيين كلمة السر');
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   return (
@@ -139,6 +159,16 @@ export default function StaffPage() {
                   </div>
                 )}
               </div>
+
+              <div className="pt-4 mt-4 border-t border-gray-200">
+                <button
+                  onClick={() => { setResetTarget(user); setNewPassword(''); }}
+                  className="flex items-center gap-2 w-full px-4 py-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 transition-colors text-sm"
+                >
+                  <KeyRound size={16} />
+                  إعادة تعيين كلمة السر
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -146,7 +176,7 @@ export default function StaffPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -166,7 +196,7 @@ export default function StaffPage() {
                   required
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أدخل الاسم الكامل"
                 />
               </div>
@@ -182,7 +212,7 @@ export default function StaffPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="example@hospital.com"
                 />
               </div>
@@ -199,7 +229,7 @@ export default function StaffPage() {
                   minLength={6}
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="كلمة المرور (6 أحرف على الأقل)"
                 />
               </div>
@@ -214,7 +244,7 @@ export default function StaffPage() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="05xxxxxxxx"
                 />
               </div>
@@ -229,7 +259,7 @@ export default function StaffPage() {
                   required
                   value={formData.role}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                 >
                   <option value={UserRole.ADMIN}>مدير النظام</option>
                   <option value={UserRole.DOCTOR}>طبيب</option>
@@ -256,6 +286,48 @@ export default function StaffPage() {
                   onClick={() => setShowModal(false)}
                   disabled={isSubmitting}
                   className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg transition-colors"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">إعادة تعيين كلمة السر</h2>
+              <p className="text-sm text-gray-600 mt-1">{resetTarget.fullName}</p>
+            </div>
+            <form onSubmit={handleResetPassword} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">كلمة السر الجديدة *</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
+                  placeholder="6 أحرف على الأقل"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={isResetting}
+                  className="flex-1 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {isResetting ? 'جاري الحفظ...' : 'إعادة التعيين'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setResetTarget(null); setNewPassword(''); }}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors"
                 >
                   إلغاء
                 </button>

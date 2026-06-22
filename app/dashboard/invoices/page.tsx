@@ -168,7 +168,7 @@ export default function InvoicesPage() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">الفواتير</h1>
+        <h1 className="text-3xl font-bold text-gray-900">الفواتير</h1>
         <div className="text-sm text-gray-600">
           <p className="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
             💡 الفواتير تُنشأ تلقائياً عند إنشاء الزيارات
@@ -178,11 +178,11 @@ export default function InvoicesPage() {
 
       {/* Filter */}
       <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">تصفية حسب الحالة</label>
+        <label className="block text-sm font-medium mb-2 text-gray-700">تصفية حسب الحالة</label>
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value as InvoiceStatus | '')}
-          className="border rounded-lg px-3 py-2 w-64"
+          className="border border-gray-300 rounded-lg px-3 py-2 w-64 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
         >
           <option value="">الكل</option>
           <option value={InvoiceStatus.PENDING}>قيد الانتظار</option>
@@ -216,8 +216,8 @@ export default function InvoicesPage() {
               {invoices.map((invoice) => {
                 return (
                   <tr key={invoice.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">#{invoice.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{invoice.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {invoice.patient?.fullName || `مريض #${invoice.patientId}`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -225,13 +225,13 @@ export default function InvoicesPage() {
                         {getStatusText(invoice.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">{parseFloat(invoice.totalAmount).toFixed(2)} ريال</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">{parseFloat(invoice.discount).toFixed(2)} ريال</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">{parseFloat(invoice.finalAmount).toFixed(2)} ريال</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parseFloat(invoice.totalAmount).toFixed(2)} ريال</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parseFloat(invoice.discount).toFixed(2)} ريال</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{parseFloat(invoice.finalAmount).toFixed(2)} ريال</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {new Date(invoice.createdAt).toLocaleDateString('ar-SA')}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleViewDetails(invoice)}
@@ -316,15 +316,15 @@ export default function InvoicesPage() {
                     <tbody className="divide-y divide-gray-200">
                       {selectedInvoice.items.map((item) => (
                         <tr key={item.id}>
-                          <td className="px-4 py-3 text-sm">
+                          <td className="px-4 py-3 text-sm text-gray-900">
                             <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
                               {getItemTypeText(item.itemType)}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm">{item.description}</td>
-                          <td className="px-4 py-3 text-sm">{item.quantity}</td>
-                          <td className="px-4 py-3 text-sm">{parseFloat(item.unitPrice).toFixed(2)} ريال</td>
-                          <td className="px-4 py-3 text-sm font-medium">{parseFloat(item.subTotal).toFixed(2)} ريال</td>
+                          <td className="px-4 py-3 text-sm text-gray-900">{item.description}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900">{item.quantity}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900">{parseFloat(item.unitPrice).toFixed(2)} ريال</td>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{parseFloat(item.subTotal).toFixed(2)} ريال</td>
                         </tr>
                       ))}
                     </tbody>

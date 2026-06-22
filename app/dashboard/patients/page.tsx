@@ -91,7 +91,14 @@ export default function PatientsPage() {
       toast.success('تم حذف المريض بنجاح');
       fetchPatients();
     } catch (error: any) {
-      toast.error('فشل حذف المريض');
+      const status = error.response?.status;
+      if (status === 409) {
+        toast.error('لا يمكن حذف المريض لوجود سجلات طبية مرتبطة به');
+      } else if (status === 404) {
+        toast.error('المريض غير موجود');
+      } else {
+        toast.error('فشل حذف المريض');
+      }
     }
   };
 
@@ -251,7 +258,7 @@ export default function PatientsPage() {
                   required
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أدخل الاسم الكامل"
                 />
               </div>
@@ -267,7 +274,7 @@ export default function PatientsPage() {
                     required
                     value={formData.gender}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   >
                     <option value={Gender.MALE}>ذكر</option>
                     <option value={Gender.FEMALE}>أنثى</option>
@@ -284,7 +291,7 @@ export default function PatientsPage() {
                     required
                     value={formData.birthDate}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   />
                 </div>
               </div>
@@ -300,7 +307,7 @@ export default function PatientsPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                     placeholder="05xxxxxxxx"
                   />
                 </div>
@@ -314,7 +321,7 @@ export default function PatientsPage() {
                     name="bloodType"
                     value={formData.bloodType}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                     placeholder="A+, B-, O+, AB+..."
                   />
                 </div>
@@ -330,7 +337,7 @@ export default function PatientsPage() {
                   value={formData.address}
                   onChange={handleChange}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="أدخل العنوان الكامل"
                 />
               </div>
@@ -345,7 +352,7 @@ export default function PatientsPage() {
                   name="emergencyContact"
                   value={formData.emergencyContact}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-900"
                   placeholder="الاسم ورقم الهاتف"
                 />
               </div>

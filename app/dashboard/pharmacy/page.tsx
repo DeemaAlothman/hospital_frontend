@@ -1,21 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Pill, FileText, Eye, Edit2, Trash2, X, Check } from 'lucide-react';
+import { Plus, Pill, FileText, Eye, Edit2, Trash2, X, Check, Receipt } from 'lucide-react';
 import {
   Medicine,
   CreateMedicineDto,
   Prescription,
   PrescriptionStatus,
+  Invoice,
+  InvoiceStatus,
 } from '@/types';
 import { medicinesApi } from '@/lib/api/medicines';
 import { prescriptionsApi } from '@/lib/api/prescriptions';
+import { invoicesApi } from '@/lib/api/invoices';
 import { toast } from 'react-toastify';
 import { useAuthStore } from '@/stores/authStore';
+import { useConfirm } from '@/hooks/useConfirm';
 
-type ActiveSection = 'medicines' | 'prescriptions';
+type ActiveSection = 'medicines' | 'prescriptions' | 'invoices';
 
 export default function PharmacyPage() {
+  const { confirm, ConfirmComponent } = useConfirm();
   const { user } = useAuthStore();
   const [activeSection, setActiveSection] = useState<ActiveSection>('prescriptions');
 
@@ -35,6 +40,9 @@ export default function PharmacyPage() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [viewingPrescription, setViewingPrescription] = useState<Prescription | null>(null);
 
+  // Invoices
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,7 +55,7 @@ export default function PharmacyPage() {
       setLoading(true);
 
       // جلب الأدوية والوصفات فقط (الصيدلي لا يحتاج المرضى)
-      const [medicinesData, prescriptionsData] = await Promise.all([
+      const [medicinesData, prescriptionsData, invoicesData] = await Promise.all([
         medicinesApi.getAll().catch(error => {
           console.error('خطأ في جلب الأدوية:', error);
           return [];
@@ -56,10 +64,15 @@ export default function PharmacyPage() {
           console.error('خطأ في جلب الوصفات:', error);
           return [];
         }),
+        invoicesApi.getAll().catch(error => {
+          console.error('خطأ في جلب الفواتير:', error);
+          return [];
+        }),
       ]);
 
       setMedicines(medicinesData);
       setPrescriptions(prescriptionsData);
+      setInvoices(invoicesData);
     } catch (error: any) {
       console.error('خطأ عام:', error);
       toast.error('حدث خطأ أثناء تحميل البيانات');
@@ -103,7 +116,8 @@ export default function PharmacyPage() {
   };
 
   const handleDeleteMedicine = async (id: number) => {
-    if (!confirm('هل أنت متأكد من حذف هذا الدواء؟')) return;
+    const confirmed = await confirm({ title: 'تأكيد الحذف', message: 'هل أنت متأكد من حذف هذا الدواء؟', confirmText: 'حذف', type: 'danger' });
+    if (!confirmed) return;
 
     try {
       await medicinesApi.delete(id);
@@ -191,7 +205,7 @@ export default function PharmacyPage() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">لوحة الصيدلية</h1>
+        <h1 className="text-3xl font-bold mb-2 text-gray-900">لوحة الصيدلية</h1>
         <p className="text-gray-600">إدارة الأدوية وصرف الوصفات الطبية</p>
       </div>
 
@@ -223,12 +237,25 @@ export default function PharmacyPage() {
             إدارة الأدوية
           </div>
         </button>
+        <button
+          onClick={() => setActiveSection('invoices')}
+          className={`px-6 py-3 font-medium transition-colors ${
+            activeSection === 'invoices'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Receipt size={20} />
+            الفواتير
+          </div>
+        </button>
       </div>
 
       {/* Prescriptions Section */}
       {activeSection === 'prescriptions' && (
         <div>
-          <h2 className="text-2xl font-bold mb-6">الوصفات الطبية للصرف</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">الوصفات الطبية للصرف</h2>
 
           {prescriptions.filter(p => p.status === PrescriptionStatus.ACTIVE).length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
@@ -300,7 +327,7 @@ export default function PharmacyPage() {
       {activeSection === 'medicines' && (
         <div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">الأدوية المتوفرة</h2>
+            <h2 className="text-2xl font-bold text-gray-900">الأدوية المتوفرة</h2>
             <button
               onClick={() => setShowMedicineModal(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
@@ -331,9 +358,9 @@ export default function PharmacyPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {medicines.map((medicine) => (
                     <tr key={medicine.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{medicine.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{medicine.category || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{medicine.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{medicine.category || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <span
                           className={`${
                             isLowStock(medicine.stock)
@@ -344,8 +371,8 @@ export default function PharmacyPage() {
                           {medicine.stock}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">{parseFloat(medicine.price).toFixed(2)} ريال</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{parseFloat(medicine.price).toFixed(2)} ريال</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {medicine.expirationDate ? (
                           <span
                             className={`${
@@ -362,7 +389,7 @@ export default function PharmacyPage() {
                           '-'
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEditMedicine(medicine)}
@@ -389,12 +416,66 @@ export default function PharmacyPage() {
         </div>
       )}
 
+      {/* Invoices Section */}
+      {activeSection === 'invoices' && (
+        <div>
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">فواتير الصيدلية</h2>
+          {invoices.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <Receipt size={64} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500 text-lg">لا توجد فواتير</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المريض</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجمالي قسمك</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">التاريخ</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {invoices.map((invoice) => (
+                    <tr key={invoice.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.id}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {invoice.patient?.fullName || `مريض #${invoice.patientId}`}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {(invoice.departmentTotal ?? parseFloat(invoice.finalAmount)).toFixed(2)} ر.س
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          invoice.status === InvoiceStatus.PAID
+                            ? 'bg-green-100 text-green-800'
+                            : invoice.status === InvoiceStatus.PENDING
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {invoice.status === InvoiceStatus.PAID ? 'مدفوعة' : invoice.status === InvoiceStatus.PENDING ? 'معلقة' : 'ملغاة'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(invoice.createdAt).toLocaleDateString('ar-SA')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Medicine Modal */}
       {showMedicineModal && (
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
             <div className="p-6 border-b flex justify-between items-center">
-              <h2 className="text-2xl font-bold">{editingMedicine ? 'تعديل الدواء' : 'إضافة دواء جديد'}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{editingMedicine ? 'تعديل الدواء' : 'إضافة دواء جديد'}</h2>
               <button onClick={handleCloseMedicineModal} className="text-gray-500 hover:text-gray-700">
                 <X size={24} />
               </button>
@@ -402,41 +483,41 @@ export default function PharmacyPage() {
 
             <form onSubmit={handleMedicineSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">اسم الدواء *</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">اسم الدواء *</label>
                 <input
                   type="text"
                   required
                   value={medicineFormData.name}
                   onChange={(e) => setMedicineFormData({ ...medicineFormData, name: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">الفئة</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">الفئة</label>
                 <input
                   type="text"
                   value={medicineFormData.category}
                   onChange={(e) => setMedicineFormData({ ...medicineFormData, category: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="مثال: مسكنات، مضادات حيوية..."
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">الكمية</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">الكمية</label>
                   <input
                     type="number"
                     min="0"
                     value={medicineFormData.stock}
                     onChange={(e) => setMedicineFormData({ ...medicineFormData, stock: parseInt(e.target.value) || 0 })}
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">السعر (ريال) *</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">السعر (ريال) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -444,18 +525,18 @@ export default function PharmacyPage() {
                     min="0"
                     value={medicineFormData.price}
                     onChange={(e) => setMedicineFormData({ ...medicineFormData, price: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">تاريخ الانتهاء</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">تاريخ الانتهاء</label>
                 <input
                   type="date"
                   value={medicineFormData.expirationDate}
                   onChange={(e) => setMedicineFormData({ ...medicineFormData, expirationDate: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
               </div>
 
@@ -486,7 +567,7 @@ export default function PharmacyPage() {
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl">
             <div className="p-6 border-b flex justify-between items-center">
-              <h2 className="text-2xl font-bold">تفاصيل الوصفة الطبية</h2>
+              <h2 className="text-2xl font-bold text-gray-900">تفاصيل الوصفة الطبية</h2>
               <button onClick={() => setViewingPrescription(null)} className="text-gray-500 hover:text-gray-700">
                 <X size={24} />
               </button>
@@ -565,6 +646,7 @@ export default function PharmacyPage() {
           </div>
         </div>
       )}
+      <ConfirmComponent />
     </div>
   );
 }
