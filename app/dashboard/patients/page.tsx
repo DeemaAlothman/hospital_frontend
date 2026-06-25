@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, User as UserIcon, Edit2, Trash2 } from 'lucide-react';
-import { Patient, CreatePatientDto, UpdatePatientDto, Gender } from '@/types';
+import { Patient, CreatePatientDto, UpdatePatientDto, Gender, UserRole } from '@/types';
 import { patientsApi } from '@/lib/api/patients';
 import { toast } from 'react-toastify';
 import { useConfirm } from '@/hooks/useConfirm';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function PatientsPage() {
   const { confirm, ConfirmComponent } = useConfirm();
+  const { user } = useAuthStore();
+  const canDelete = user?.role !== UserRole.NURSE;
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -223,13 +226,15 @@ export default function PatientsPage() {
                   <Edit2 size={16} />
                   تعديل
                 </button>
-                <button
-                  onClick={() => handleDelete(patient.id)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                >
-                  <Trash2 size={16} />
-                  حذف
-                </button>
+                {canDelete && (
+                  <button
+                    onClick={() => handleDelete(patient.id)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    <Trash2 size={16} />
+                    حذف
+                  </button>
+                )}
               </div>
             </div>
           ))}

@@ -57,8 +57,8 @@ const allMenuItems: MenuItem[] = [
   { name: 'طلبات الأشعة', href: '/dashboard/doctor-radiology-requests', icon: ScanLine, roles: ['DOCTOR'] },
 
   // Admin lab/radiology
-  { name: 'المختبر', href: '/dashboard/lab', icon: FlaskConical, roles: ['ADMIN', 'LAB_TECH'] },
-  { name: 'الأشعة', href: '/dashboard/radiology', icon: ScanLine, roles: ['ADMIN', 'RADIOLOGY_TECH'] },
+  { name: 'المختبر', href: '/dashboard/lab', icon: FlaskConical, roles: ['ADMIN', 'LAB_TECH', 'NURSE'] },
+  { name: 'الأشعة', href: '/dashboard/radiology', icon: ScanLine, roles: ['ADMIN', 'RADIOLOGY_TECH', 'NURSE'] },
   { name: 'الفواتير', href: '/dashboard/invoices', icon: Receipt, roles: ['ADMIN', 'CASHIER'] },
 
   // Rooms & Reservations

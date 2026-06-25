@@ -27,6 +27,8 @@ export default function LabPage() {
   const { user } = useAuthStore();
   const isDoctor = user?.role === UserRole.DOCTOR;
   const isAdmin = user?.role === UserRole.ADMIN;
+  const isLabTech = user?.role === UserRole.LAB_TECH;
+  const canManageTests = isAdmin || isLabTech;
 
   const [activeTab, setActiveTab] = useState<TabType>('requests');
 
@@ -347,7 +349,7 @@ export default function LabPage() {
             <h1 className="text-3xl font-bold text-gray-900">المختبر</h1>
             <p className="text-gray-600 mt-2">إدارة التحاليل والطلبات المخبرية</p>
           </div>
-          {activeTab === 'tests' && (
+          {activeTab === 'tests' && canManageTests && (
             <button
               onClick={() => setShowTestModal(true)}
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
@@ -440,22 +442,24 @@ export default function LabPage() {
                   </span>
                 </div>
 
-                <div className="flex gap-2 pt-4 border-t border-gray-200">
-                  <button
-                    onClick={() => handleEditTest(test)}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    <Edit2 size={16} />
-                    تعديل
-                  </button>
-                  <button
-                    onClick={() => handleDeleteTest(test.id)}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                    حذف
-                  </button>
-                </div>
+                {canManageTests && (
+                  <div className="flex gap-2 pt-4 border-t border-gray-200">
+                    <button
+                      onClick={() => handleEditTest(test)}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      <Edit2 size={16} />
+                      تعديل
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTest(test.id)}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                      حذف
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
